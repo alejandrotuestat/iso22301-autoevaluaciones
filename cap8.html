@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación Capítulo 8 — ISO 22301:2019</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;color:#1A1A1A;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header{text-align:center;margin-bottom:1.5rem}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.header p{font-size:13px;color:#666}
+.logo{display:inline-block;background:#C00000;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.05em}
+.pb{height:5px;background:#E0E0E0;border-radius:3px;margin-bottom:1.5rem}
+.pf{height:5px;background:#185FA5;border-radius:3px;transition:width .3s}
+.card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.qnum{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.qsec{font-size:10px;color:#185FA5;font-weight:600;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:#1A1A1A}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;line-height:1.45;color:#1A1A1A;transition:border-color .15s,background .15s}
+.opt:hover{background:#F0F7FF;border-color:#185FA5}
+.opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#27500A}
+.opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#791F1F}
+.dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #CCC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.opt.correct .dot{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.opt.wrong .dot{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.fb{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.55;display:none}
+.fb.show{display:block}
+.fb.ok{background:#EAF3DE;color:#1E4D08;border:1px solid #7BBF5A}
+.fb.ko{background:#FCEBEB;color:#791F1F;border:1px solid #E08080}
+.btn-next{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:15px;font-weight:500;cursor:pointer;display:none}
+.btn-next.show{display:block}
+.btn-result{width:100%;padding:14px;margin-top:1.5rem;border-radius:8px;background:#C00000;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:none}
+.result{display:none;text-align:center;padding:.5rem 0}
+.gauge-wrap{position:relative;width:220px;height:120px;margin:0 auto 1rem}
+canvas{display:block}
+.gauge-pct{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:32px;font-weight:700;color:#1A1A1A}
+.result-label{font-size:18px;font-weight:600;margin-bottom:6px}
+.result-sub{font-size:14px;color:#555;margin-bottom:1.5rem;line-height:1.5}
+.ri{text-align:left;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.ri-s{font-size:10px;color:#185FA5;font-weight:600;margin-bottom:3px}
+.ri-q{font-weight:500;margin-bottom:4px;line-height:1.4;color:#1A1A1A}
+.rok{color:#27500A;font-weight:500}.rko{color:#791F1F;font-weight:500}
+.btn-retry{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#fff;color:#1A1A1A;border:1.5px solid #CCC;font-size:14px;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:11px;color:#AAA}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="logo">ISO 22301:2019</div>
+  <h1>Autoevaluación — Capítulo 8</h1>
+  <p>Operación · BIA, Estrategias, Planes y Ejercicios · 12 preguntas</p>
+</div>
+<div class="pb"><div class="pf" id="prog" style="width:0%"></div></div>
+<div id="qbody"></div>
+<button class="btn-result" id="btnr" style="display:none">Ver mi resultado</button>
+<div class="result" id="reswrap">
+  <div class="gauge-wrap"><canvas id="gauge" width="220" height="120"></canvas><div class="gauge-pct" id="gpct"></div></div>
+  <div class="result-label" id="rlabel"></div>
+  <div class="result-sub" id="rsub"></div>
+  <div id="review"></div>
+  <button class="btn-retry" onclick="restart()">Intentar de nuevo</button>
+</div>
+<div class="footer">Curso ISO 22301:2019 · UEjecutivos — Universidad de Chile</div>
+</div>
+<script>
+const Qs=[
+{s:"8.2 — BIA",q:"¿Cuál es el criterio correcto para priorizar una actividad en el BIA según la cláusula 8.2?",opts:["La frecuencia con que se realiza durante la operación normal","El costo directo de ejecutar la actividad en condiciones normales","El impacto que genera su interrupción, independientemente de su frecuencia o costo","El número de personas involucradas directamente en su ejecución"],ans:2,fb:"La cláusula 8.2 prioriza actividades según el impacto de su interrupción — financiero, legal, reputacional o sobre partes interesadas. Una actividad poco frecuente o de bajo costo puede ser crítica si su interrupción genera consecuencias inaceptables."},
+{s:"8.2 — BIA",q:"¿Qué relación debe cumplirse entre MTPD y RTO para que una estrategia sea válida?",opts:["El RTO debe ser estrictamente menor que el MTPD; de lo contrario la estrategia es inviable","El MTPD debe ser igual al RTO para garantizar coherencia entre BIA y estrategia","El RTO puede ser mayor que el MTPD si la organización acepta el riesgo residual","No existe relación jerárquica: son parámetros independientes del BCMS"],ans:0,fb:"El MTPD es el tiempo máximo tolerable de interrupción — el techo absoluto. El RTO es el tiempo objetivo de recuperación y debe ser menor que el MTPD. Si RTO ≥ MTPD, la estrategia promete recuperarse después de que el daño ya es irrecuperable."},
+{s:"8.2 — BIA",q:"¿Qué define el MBCO en el contexto del BIA?",opts:["El tiempo máximo que la organización puede tolerar la interrupción de una actividad","El punto en el tiempo al que deben restaurarse los datos tras un incidente","El tiempo objetivo para restaurar la actividad a su nivel normal de operación","El nivel mínimo de servicio aceptable durante el período de recuperación"],ans:3,fb:"El MBCO define el umbral mínimo de capacidad operativa aceptable durante la recuperación. No es un parámetro temporal sino de nivel de servicio: responde a '¿con qué capacidad mínima podemos operar mientras nos recuperamos?'."},
+{s:"8.2 — BIA",q:"¿Por qué el BIA debe incluir el análisis de interdependencias entre actividades?",opts:["Porque las interdependencias determinan el presupuesto asignado a cada actividad","Porque una actividad puede parecer no crítica en aislamiento pero ser habilitadora de otras que sí lo son","Porque la norma lo exige como requisito formal de documentación del sistema","Porque sin interdependencias no es posible calcular el RTO de ninguna actividad"],ans:1,fb:"Una actividad de soporte puede no generar impacto directo si se interrumpe, pero su falla puede paralizar actividades críticas que dependen de ella. El BIA debe mapear estas dependencias para evitar que actividades aparentemente secundarias queden fuera de la estrategia."},
+{s:"8.3 — Estrategias de continuidad",q:"¿Qué criterio debe guiar la selección de una estrategia de continuidad según la cláusula 8.3?",opts:["Adoptar la estrategia que otros actores del mismo sector han implementado con éxito","Elegir siempre la opción más económica disponible para minimizar el impacto presupuestario","Elegir la opción que permita cumplir el RTO y el MBCO definidos en el BIA al menor costo razonable","Seleccionar la estrategia que garantice recuperación al 100% de capacidad en el menor tiempo"],ans:2,fb:"La cláusula 8.3 exige que las estrategias sean capaces de cumplir los objetivos definidos en el BIA — RTO y MBCO. La selección considera viabilidad técnica, costo y capacidad de activación dentro del tiempo requerido."},
+{s:"8.3 — Estrategias de continuidad",q:"Una organización define estrategia TI para su sistema de rutas pero no considera vehículos ni personal de campo. ¿Qué problema genera?",opts:["Ninguno: la estrategia TI es suficiente si los sistemas son el componente más crítico","Solo es problema si el contrato exige disponibilidad de flota específicamente","Es aceptable si el RTO es suficientemente amplio para resolver esas brechas después","La estrategia cubre solo un componente; sin vehículos ni personal la actividad no puede ejecutarse aunque el sistema esté disponible"],ans:3,fb:"La cláusula 8.3 exige que las estrategias cubran todos los recursos necesarios: personas, tecnología, instalaciones, equipamiento y proveedores. Una estrategia que cubre solo TI deja sin protección los componentes físicos y humanos igualmente críticos."},
+{s:"8.4 — Planes y procedimientos",q:"¿Qué distingue a un plan de continuidad de un procedimiento operativo en modo contingencia?",opts:["El plan lo aprueba la alta dirección; el procedimiento lo aprueba el coordinador del BCMS","El plan aplica a toda la organización; el procedimiento aplica solo al área de TI","El plan define estructura de respuesta, roles y criterios de activación; el procedimiento detalla paso a paso cómo ejecutar una actividad crítica específica","Son el mismo documento con distinto nombre según el tamaño de la organización"],ans:2,fb:"El plan de continuidad (8.4) define la estructura de respuesta, roles, comunicación y criterios de activación. Los procedimientos operativos en contingencia (8.4.4) detallan paso a paso cómo ejecutar cada actividad crítica cuando la operación normal no está disponible."},
+{s:"8.4 — Planes y procedimientos",q:"La cláusula 8.4.2 exige una estructura de respuesta. ¿Cuál es su elemento más crítico?",opts:["El número mínimo de integrantes que debe tener el equipo de respuesta","El presupuesto máximo autorizable durante la fase de respuesta al incidente","El canal oficial para notificar el incidente a las partes interesadas externas","La definición clara de roles con autoridad para tomar decisiones durante el incidente"],ans:3,fb:"La estructura de respuesta debe definir quién tiene autoridad para qué decisiones. Sin autoridad clara, la estructura se convierte en un organigrama decorativo que colapsa bajo la presión real de un evento disruptivo."},
+{s:"8.4 — Planes y procedimientos",q:"¿Qué exige la cláusula 8.4.3 respecto a la comunicación durante un incidente?",opts:["Que se notifique al organismo certificador dentro de las primeras 24 horas del incidente","Que la comunicación externa se realice exclusivamente a través de medios de prensa oficiales","Que se defina previamente quién comunica qué, a quién, cuándo y por qué canal — incluyendo canales alternativos","Que todas las comunicaciones se centralicen en el área de comunicaciones corporativas"],ans:2,fb:"La cláusula 8.4.3 exige que el plan defina previamente los flujos de comunicación: contenido, destinatarios, momento, canal y responsable. Deben contemplarse canales alternativos para cuando los principales fallen — que es precisamente cuando más se necesitan."},
+{s:"8.4 — Planes y procedimientos",q:"¿Cuándo se activa el plan de recuperación según la cláusula 8.4.5?",opts:["Antes de activar el plan de contingencia, como medida preventiva ante el incidente","Inmediatamente después de detectado el incidente, en paralelo con la respuesta inicial","Solo cuando el incidente ha sido declarado oficialmente por la autoridad competente","Una vez controlado el evento disruptivo, para restaurar la actividad a su nivel normal"],ans:3,fb:"El plan de recuperación (8.4.5) se activa después de controlar el incidente. Su objetivo es restaurar la operación desde el nivel mínimo del MBCO hasta el nivel normal. Se activa tras la respuesta y la contingencia, no en paralelo con ellas."},
+{s:"8.5 — Ejercicios y simulacros",q:"¿Cuál es el propósito fundamental del programa de ejercicios según la cláusula 8.5?",opts:["Demostrar al organismo certificador que el BCMS está implementado y funcionando","Cumplir el requisito de realizar al menos un simulacro anual exigido por la norma","Verificar que los planes son eficaces, identificar brechas y mantener las competencias del equipo","Entrenar al personal nuevo antes de su incorporación formal al equipo de respuesta"],ans:2,fb:"La cláusula 8.5 define el programa de ejercicios como mecanismo para verificar que los planes funcionan en la práctica, identificar brechas antes de un incidente real y mantener las competencias del equipo. La certificación es una consecuencia, no el propósito."},
+{s:"8.5 — Ejercicios y simulacros",q:"¿Cuál es la diferencia principal entre un ejercicio de escritorio y un simulacro completo?",opts:["El ejercicio de escritorio es obligatorio; el simulacro es opcional según el tamaño de la organización","El ejercicio de escritorio prueba la lógica del plan en sala; el simulacro activa los procedimientos en condiciones lo más reales posible","El ejercicio de escritorio lo facilita el coordinador; el simulacro debe ser conducido por un auditor externo","El ejercicio de escritorio evalúa competencias individuales; el simulacro evalúa solo sistemas tecnológicos"],ans:1,fb:"El ejercicio de escritorio permite analizar y discutir la respuesta a un escenario sin activar procedimientos reales — valida la lógica del plan. El simulacro activa los procedimientos en condiciones cercanas a un incidente real, revelando brechas que el escritorio no detecta."}
+];
+let cur=0,score=0,answered=[];
+function render(){
+  const q=Qs[cur];
+  document.getElementById('prog').style.width=Math.round((cur/Qs.length)*100)+'%';
+  let h=`<div class="card"><div class="qnum">Pregunta ${cur+1} de ${Qs.length}</div><div class="qsec">${q.s}</div><div class="qtext">${q.q}</div>`;
+  q.opts.forEach((o,i)=>{h+=`<div class="opt" id="op${i}" onclick="pick(${i})"><div class="dot" id="dot${i}"></div><span>${o}</span></div>`;});
+  h+=`<div class="fb" id="fb"></div></div>`;
+  document.getElementById('qbody').innerHTML=h;
+  document.getElementById('btnr').style.display='none';
+}
+function pick(i){
+  const q=Qs[cur];
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  const ok=i===q.ans;
+  document.getElementById('op'+i).classList.add(ok?'correct':'wrong');
+  document.getElementById('dot'+i).textContent=ok?'✓':'✗';
+  if(!ok){document.getElementById('op'+q.ans).classList.add('correct');document.getElementById('dot'+q.ans).textContent='✓';}
+  const fb=document.getElementById('fb');fb.textContent=q.fb;fb.className='fb show '+(ok?'ok':'ko');
+  if(ok)score++;answered.push({q:q.q,s:q.s,ok});cur++;
+  if(cur<Qs.length){
+    const b=document.createElement('button');b.className='btn-next show';b.textContent='Siguiente →';b.onclick=render;
+    document.querySelector('.card').appendChild(b);
+  } else {document.getElementById('btnr').style.display='block';}
+}
+function showResult(){
+  document.getElementById('qbody').innerHTML='';document.getElementById('btnr').style.display='none';
+  document.getElementById('reswrap').style.display='block';
+  const pct=Math.round((score/Qs.length)*100);
+  document.getElementById('gpct').textContent=pct+'%';drawGauge(pct);
+  let label,sub,color;
+  if(pct>=83){label='Excelente dominio';sub='Comprendes sólidamente los requisitos operativos del Capítulo 8.';color='#3B6D11';}
+  else if(pct>=58){label='Buen nivel';sub='Algunos conceptos operativos vale la pena repasar antes de continuar.';color='#BA7517';}
+  else{label='Necesitas repasar';sub='Te recomendamos revisar las cláusulas 8.2 a 8.5 antes de continuar.';color='#A32D2D';}
+  const rl=document.getElementById('rlabel');rl.textContent=label;rl.style.color=color;
+  document.getElementById('rsub').textContent=sub;
+  document.getElementById('review').innerHTML=answered.map((a,i)=>
+    `<div class="ri"><div class="ri-s">${a.s}</div><div class="ri-q">${i+1}. ${a.q}</div><div class="${a.ok?'rok':'rko'}">${a.ok?'✓ Correcta':'✗ Incorrecta'}</div></div>`).join('');
+}
+function drawGauge(pct){
+  const c=document.getElementById('gauge'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,220,120);
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,2*Math.PI);ctx.strokeStyle='#E0E0E0';ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+  const color=pct>=83?'#3B6D11':pct>=58?'#BA7517':'#A32D2D';
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,Math.PI+(pct/100)*Math.PI);ctx.strokeStyle=color;ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+}
+function restart(){cur=0;score=0;answered=[];document.getElementById('reswrap').style.display='none';render();}
+document.getElementById('btnr').onclick=showResult;
+render();
+</script>
+</body>
+</html>
