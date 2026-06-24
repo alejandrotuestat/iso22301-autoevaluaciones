@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación Capítulo 10 — ISO 22301:2019</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;color:#1A1A1A;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header{text-align:center;margin-bottom:1.5rem}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.header p{font-size:13px;color:#666}
+.logo{display:inline-block;background:#C00000;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.05em}
+.pb{height:5px;background:#E0E0E0;border-radius:3px;margin-bottom:1.5rem}
+.pf{height:5px;background:#185FA5;border-radius:3px;transition:width .3s}
+.card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.qnum{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.qsec{font-size:10px;color:#185FA5;font-weight:600;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:#1A1A1A}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;line-height:1.45;color:#1A1A1A;transition:border-color .15s,background .15s}
+.opt:hover{background:#F0F7FF;border-color:#185FA5}
+.opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#27500A}
+.opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#791F1F}
+.dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #CCC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.opt.correct .dot{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.opt.wrong .dot{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.fb{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.55;display:none}
+.fb.show{display:block}
+.fb.ok{background:#EAF3DE;color:#1E4D08;border:1px solid #7BBF5A}
+.fb.ko{background:#FCEBEB;color:#791F1F;border:1px solid #E08080}
+.btn-next{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:15px;font-weight:500;cursor:pointer;display:none}
+.btn-next.show{display:block}
+.btn-result{width:100%;padding:14px;margin-top:1.5rem;border-radius:8px;background:#C00000;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:none}
+.result{display:none;text-align:center;padding:.5rem 0}
+.gauge-wrap{position:relative;width:220px;height:120px;margin:0 auto 1rem}
+canvas{display:block}
+.gauge-pct{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:32px;font-weight:700;color:#1A1A1A}
+.result-label{font-size:18px;font-weight:600;margin-bottom:6px}
+.result-sub{font-size:14px;color:#555;margin-bottom:1.5rem;line-height:1.5}
+.ri{text-align:left;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.ri-s{font-size:10px;color:#185FA5;font-weight:600;margin-bottom:3px}
+.ri-q{font-weight:500;margin-bottom:4px;line-height:1.4;color:#1A1A1A}
+.rok{color:#27500A;font-weight:500}.rko{color:#791F1F;font-weight:500}
+.btn-retry{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#fff;color:#1A1A1A;border:1.5px solid #CCC;font-size:14px;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:11px;color:#AAA}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="logo">ISO 22301:2019</div>
+  <h1>Autoevaluación — Capítulo 10</h1>
+  <p>Mejora · No conformidades y mejora continua · 8 preguntas</p>
+</div>
+<div class="pb"><div class="pf" id="prog" style="width:0%"></div></div>
+<div id="qbody"></div>
+<button class="btn-result" id="btnr" style="display:none">Ver mi resultado</button>
+<div class="result" id="reswrap">
+  <div class="gauge-wrap"><canvas id="gauge" width="220" height="120"></canvas><div class="gauge-pct" id="gpct"></div></div>
+  <div class="result-label" id="rlabel"></div>
+  <div class="result-sub" id="rsub"></div>
+  <div id="review"></div>
+  <button class="btn-retry" onclick="restart()">Intentar de nuevo</button>
+</div>
+<div class="footer">Curso ISO 22301:2019 · UEjecutivos — Universidad de Chile</div>
+</div>
+<script>
+const Qs=[
+{s:"10.1 — No conformidades y acciones correctivas",
+q:"¿Cuál es la diferencia entre una corrección y una acción correctiva según la cláusula 10.1?",
+opts:[
+  "Son sinónimos: ambos términos describen la misma respuesta ante una no conformidad detectada",
+  "La corrección elimina la no conformidad detectada; la acción correctiva elimina su causa para evitar que vuelva a ocurrir",
+  "La corrección la aplica el área afectada; la acción correctiva la aprueba el organismo certificador externo",
+  "La corrección aplica a no conformidades menores; la acción correctiva aplica solo a no conformidades mayores"
+],ans:1,
+fb:"La corrección actúa sobre el síntoma — repara el problema detectado. La acción correctiva actúa sobre la causa raíz — evita que el problema se repita. La cláusula 10.1 exige ambas, pero la acción correctiva es la que genera mejora real y sostenida en el BCMS."},
+
+{s:"10.1 — No conformidades y acciones correctivas",
+q:"¿Qué debe incluir el análisis de una no conformidad según la cláusula 10.1?",
+opts:[
+  "Solo documentar el hecho ocurrido y el área responsable sin necesidad de análisis adicional",
+  "Revisar si no conformidades similares ocurrieron antes en otras áreas de la organización",
+  "Determinar la causa raíz, evaluar si existen no conformidades similares y verificar la eficacia de las acciones tomadas",
+  "Calcular el costo económico de la no conformidad para incluirlo en el presupuesto del BCMS"
+],ans:2,
+fb:"La cláusula 10.1 exige: reaccionar ante la no conformidad, determinar su causa raíz, implementar acciones para que no se repita, verificar su eficacia y evaluar si existen problemas similares. El análisis de causa raíz es el núcleo del proceso correctivo."},
+
+{s:"10.1 — No conformidades y acciones correctivas",
+q:"Una organización detecta una no conformidad, la corrige de inmediato y cierra el registro. ¿Cumple la cláusula 10.1?",
+opts:[
+  "Sí: corregir la no conformidad tan pronto se detecta es el requisito central de la cláusula 10.1",
+  "Sí, siempre que la corrección quede documentada con fecha y responsable en el registro correspondiente",
+  "No: sin análisis de causa raíz ni acción correctiva, el problema puede repetirse y el ciclo de mejora no se completa",
+  "Sí, si el auditor interno valida que la corrección fue adecuada y proporcional a la no conformidad"
+],ans:2,
+fb:"Corregir sin analizar la causa raíz es gestionar síntomas, no problemas. La cláusula 10.1 exige identificar por qué ocurrió la no conformidad e implementar acciones que eviten su recurrencia. Sin este paso, el BCMS no aprende de sus fallas."},
+
+{s:"10.1 — No conformidades y acciones correctivas",
+q:"¿Cuándo debe verificarse la eficacia de una acción correctiva según la cláusula 10.1?",
+opts:[
+  "Inmediatamente después de implementar la acción, antes de cerrar el registro de no conformidad",
+  "Solo en la próxima auditoría interna programada, independientemente del plazo de la acción",
+  "Una vez implementada la acción y transcurrido tiempo suficiente para comprobar que la causa no se ha repetido",
+  "Solo cuando el organismo certificador lo solicite durante la auditoría de seguimiento externa"
+],ans:2,
+fb:"La eficacia de una acción correctiva solo puede verificarse después de que haya transcurrido tiempo suficiente para confirmar que la causa raíz no ha vuelto a generar el problema. Verificar inmediatamente o solo en auditoría no garantiza que el problema esté realmente resuelto."},
+
+{s:"10.1 — No conformidades y acciones correctivas",
+q:"¿Qué fuentes pueden originar una no conformidad que requiera acción correctiva en el BCMS?",
+opts:[
+  "Solo las detectadas durante auditorías internas formales programadas del BCMS",
+  "Únicamente los incidentes reales que hayan activado el plan de continuidad del negocio",
+  "Auditorías internas, ejercicios, incidentes reales, revisión por la dirección o cualquier evaluación del desempeño",
+  "Solo las reportadas formalmente por el organismo certificador en su informe de auditoría externa"
+],ans:2,
+fb:"La cláusula 10.1 no limita el origen de las no conformidades. Pueden surgir de auditorías internas, ejercicios y simulacros, incidentes reales, revisiones por la dirección, seguimiento de indicadores o cualquier otra evaluación. El BCMS debe aprender de todas estas fuentes."},
+
+{s:"10.2 — Mejora continua",
+q:"¿Qué distingue a la mejora continua de la corrección de no conformidades según la cláusula 10.2?",
+opts:[
+  "La mejora continua es obligatoria; la corrección de no conformidades es opcional si el BCMS funciona bien",
+  "La corrección reacciona ante problemas detectados; la mejora continua busca proactivamente aumentar la idoneidad y eficacia del BCMS",
+  "La mejora continua la gestiona la alta dirección; la corrección la gestiona el coordinador del BCMS",
+  "No existe diferencia real: ambas forman parte del mismo proceso normativo del Capítulo 10"
+],ans:1,
+fb:"La corrección es reactiva — responde a fallas detectadas. La mejora continua (10.2) es proactiva — busca aumentar permanentemente la idoneidad, adecuación y eficacia del BCMS, incluso cuando no hay no conformidades. Son complementarias pero conceptualmente distintas."},
+
+{s:"10.2 — Mejora continua",
+q:"¿Cómo se relaciona la mejora continua del BCMS con el ciclo PDCA?",
+opts:[
+  "El PDCA aplica solo a la fase de planificación del BCMS; la mejora continua es independiente de este ciclo",
+  "La mejora continua es el resultado natural de ejecutar el ciclo PDCA completo: planificar, hacer, verificar y actuar de forma sistemática",
+  "El PDCA es un modelo opcional que la organización puede adoptar o no para gestionar la mejora del BCMS",
+  "La mejora continua ocurre solo en la fase 'Actuar' del PDCA, sin relación con las demás fases del ciclo"
+],ans:1,
+fb:"ISO 22301 está estructurada sobre el ciclo PDCA. La mejora continua es el resultado de ejecutar el ciclo completo: planificar el BCMS (Cáps. 4-6), implementarlo (Cáp. 7-8), verificar su desempeño (Cáp. 9) y actuar para mejorarlo (Cáp. 10). El ciclo nunca termina — es continuo por definición."},
+
+{s:"10.2 — Mejora continua",
+q:"Una organización no ha tenido no conformidades ni incidentes en dos años. ¿Está obligada a mejorar su BCMS según la cláusula 10.2?",
+opts:[
+  "No: si no hay problemas detectados, el BCMS está funcionando correctamente y no requiere cambios",
+  "No: la mejora continua solo aplica cuando existen no conformidades o incidentes que la justifiquen",
+  "Sí: la cláusula 10.2 exige mejorar continuamente la idoneidad y eficacia del BCMS independientemente de si hay fallas detectadas",
+  "Solo si el organismo certificador lo exige explícitamente durante la auditoría de renovación del certificado"
+],ans:2,
+fb:"La cláusula 10.2 exige mejorar continuamente la idoneidad, adecuación y eficacia del BCMS con independencia de si existen no conformidades. La ausencia de problemas no significa que el sistema no pueda ser más robusto, más eficiente o mejor adaptado a un contexto que cambia permanentemente."}
+];
+let cur=0,score=0,answered=[];
+function render(){
+  const q=Qs[cur];
+  document.getElementById('prog').style.width=Math.round((cur/Qs.length)*100)+'%';
+  let h=`<div class="card"><div class="qnum">Pregunta ${cur+1} de ${Qs.length}</div><div class="qsec">${q.s}</div><div class="qtext">${q.q}</div>`;
+  q.opts.forEach((o,i)=>{h+=`<div class="opt" id="op${i}" onclick="pick(${i})"><div class="dot" id="dot${i}"></div><span>${o}</span></div>`;});
+  h+=`<div class="fb" id="fb"></div></div>`;
+  document.getElementById('qbody').innerHTML=h;
+  document.getElementById('btnr').style.display='none';
+}
+function pick(i){
+  const q=Qs[cur];
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  const ok=i===q.ans;
+  document.getElementById('op'+i).classList.add(ok?'correct':'wrong');
+  document.getElementById('dot'+i).textContent=ok?'✓':'✗';
+  if(!ok){document.getElementById('op'+q.ans).classList.add('correct');document.getElementById('dot'+q.ans).textContent='✓';}
+  const fb=document.getElementById('fb');fb.textContent=q.fb;fb.className='fb show '+(ok?'ok':'ko');
+  if(ok)score++;answered.push({q:q.q,s:q.s,ok});cur++;
+  if(cur<Qs.length){
+    const b=document.createElement('button');b.className='btn-next show';b.textContent='Siguiente →';b.onclick=render;
+    document.querySelector('.card').appendChild(b);
+  } else {document.getElementById('btnr').style.display='block';}
+}
+function showResult(){
+  document.getElementById('qbody').innerHTML='';document.getElementById('btnr').style.display='none';
+  document.getElementById('reswrap').style.display='block';
+  const pct=Math.round((score/Qs.length)*100);
+  document.getElementById('gpct').textContent=pct+'%';drawGauge(pct);
+  let label,sub,color;
+  if(pct>=87){label='Excelente dominio';sub='Comprendes sólidamente los requisitos del Capítulo 10.';color='#3B6D11';}
+  else if(pct>=62){label='Buen nivel';sub='Algunos conceptos sobre mejora continua vale la pena repasar.';color='#BA7517';}
+  else{label='Necesitas repasar';sub='Te recomendamos revisar las cláusulas 10.1 y 10.2 antes de continuar.';color='#A32D2D';}
+  const rl=document.getElementById('rlabel');rl.textContent=label;rl.style.color=color;
+  document.getElementById('rsub').textContent=sub;
+  document.getElementById('review').innerHTML=answered.map((a,i)=>
+    `<div class="ri"><div class="ri-s">${a.s}</div><div class="ri-q">${i+1}. ${a.q}</div><div class="${a.ok?'rok':'rko'}">${a.ok?'✓ Correcta':'✗ Incorrecta'}</div></div>`).join('');
+}
+function drawGauge(pct){
+  const c=document.getElementById('gauge'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,220,120);
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,2*Math.PI);ctx.strokeStyle='#E0E0E0';ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+  const color=pct>=87?'#3B6D11':pct>=62?'#BA7517':'#A32D2D';
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,Math.PI+(pct/100)*Math.PI);ctx.strokeStyle=color;ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+}
+function restart(){cur=0;score=0;answered=[];document.getElementById('reswrap').style.display='none';render();}
+document.getElementById('btnr').onclick=showResult;
+render();
+</script>
+</body>
+</html>
