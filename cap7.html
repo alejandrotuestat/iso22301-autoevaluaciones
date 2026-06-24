@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación Capítulo 7 — ISO 22301:2019</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;color:#1A1A1A;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header{text-align:center;margin-bottom:1.5rem}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.header p{font-size:13px;color:#666}
+.logo{display:inline-block;background:#C00000;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.05em}
+.pb{height:5px;background:#E0E0E0;border-radius:3px;margin-bottom:1.5rem}
+.pf{height:5px;background:#185FA5;border-radius:3px;transition:width .3s}
+.card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.qnum{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:#1A1A1A}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;line-height:1.45;color:#1A1A1A;transition:border-color .15s,background .15s}
+.opt:hover{background:#F0F7FF;border-color:#185FA5}
+.opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#27500A}
+.opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#791F1F}
+.dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #CCC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.opt.correct .dot{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.opt.wrong .dot{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.fb{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.55;display:none}
+.fb.show{display:block}
+.fb.ok{background:#EAF3DE;color:#1E4D08;border:1px solid #7BBF5A}
+.fb.ko{background:#FCEBEB;color:#791F1F;border:1px solid #E08080}
+.btn-next{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:15px;font-weight:500;cursor:pointer;display:none}
+.btn-next.show{display:block}
+.btn-result{width:100%;padding:14px;margin-top:1.5rem;border-radius:8px;background:#C00000;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:none}
+.result{display:none;text-align:center;padding:.5rem 0}
+.gauge-wrap{position:relative;width:220px;height:120px;margin:0 auto 1rem}
+canvas{display:block}
+.gauge-pct{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:32px;font-weight:700;color:#1A1A1A}
+.result-label{font-size:18px;font-weight:600;margin-bottom:6px}
+.result-sub{font-size:14px;color:#555;margin-bottom:1.5rem;line-height:1.5}
+.ri{text-align:left;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.ri-q{font-weight:500;margin-bottom:4px;line-height:1.4;color:#1A1A1A}
+.rok{color:#27500A;font-weight:500}.rko{color:#791F1F;font-weight:500}
+.btn-retry{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#fff;color:#1A1A1A;border:1.5px solid #CCC;font-size:14px;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:11px;color:#AAA}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="logo">ISO 22301:2019</div>
+  <h1>Autoevaluación — Capítulo 7</h1>
+  <p>Apoyo · Competencia y toma de conciencia · 8 preguntas</p>
+</div>
+<div class="pb"><div class="pf" id="prog" style="width:0%"></div></div>
+<div id="qbody"></div>
+<button class="btn-result" id="btnr" style="display:none">Ver mi resultado</button>
+<div class="result" id="reswrap">
+  <div class="gauge-wrap"><canvas id="gauge" width="220" height="120"></canvas><div class="gauge-pct" id="gpct"></div></div>
+  <div class="result-label" id="rlabel"></div>
+  <div class="result-sub" id="rsub"></div>
+  <div id="review"></div>
+  <button class="btn-retry" onclick="restart()">Intentar de nuevo</button>
+</div>
+<div class="footer">Curso ISO 22301:2019 · UEjecutivos — Universidad de Chile</div>
+</div>
+<script>
+const Qs=[
+{q:"¿Qué diferencia establece ISO 22301 entre 'competencia' y 'toma de conciencia'?",opts:["Son sinónimos: ambos describen el conocimiento del personal sobre el BCMS","La competencia es la capacidad demostrada de aplicar conocimientos; la toma de conciencia es entender por qué el BCMS importa y cuál es el rol de cada persona","La competencia aplica solo a directivos; la toma de conciencia aplica a todo el personal","La toma de conciencia se logra con capacitación anual; la competencia requiere certificación externa"],ans:1,fb:"La cláusula 7.2 define competencia como la capacidad demostrada de aplicar conocimientos y habilidades. La cláusula 7.3 define toma de conciencia como entender la política, el rol propio y las consecuencias de no cumplir los requisitos. Son dimensiones distintas y complementarias."},
+{q:"Según la cláusula 7.2, ¿qué debe hacer la organización si detecta una brecha de competencia?",opts:["Documentar la brecha y esperar a la próxima revisión anual para abordarla","Reemplazar de inmediato al personal que no cumple los requisitos de competencia","Tomar acciones para adquirir la competencia necesaria y evaluar la eficacia de esas acciones","Externalizar la función al área de RR.HH. para que gestione la capacitación correspondiente"],ans:2,fb:"La cláusula 7.2 exige que ante una brecha de competencia la organización tome acciones — capacitación, mentoring, reasignación, contratación — y luego evalúe si esas acciones fueron eficaces. No basta con documentar la brecha."},
+{q:"¿Qué debe saber el personal para considerarse 'consciente' del BCMS según la cláusula 7.3?",opts:["El contenido completo de ISO 22301:2019 y todas sus cláusulas en detalle","La política de continuidad, su contribución a la eficacia del BCMS y las consecuencias de no cumplir los requisitos","Los nombres de los miembros del comité de crisis y los procedimientos técnicos de TI","Solo el plan de evacuación y los procedimientos de emergencia de su área de trabajo"],ans:1,fb:"La cláusula 7.3 define tres elementos mínimos de toma de conciencia: conocer la política, entender cómo contribuye cada persona a la eficacia del BCMS y comprender las consecuencias de no cumplir los requisitos. No exige conocer la norma completa."},
+{q:"Una organización realiza capacitación anual y guarda registro de asistencia. ¿Es evidencia suficiente de competencia según la cláusula 7.2?",opts:["Sí: la asistencia a capacitación es la evidencia estándar aceptada en sistemas de gestión","No necesariamente: la competencia debe demostrarse, no solo declararse. La asistencia prueba participación, no capacidad de aplicar lo aprendido","Sí, siempre que la capacitación haya sido impartida por un organismo acreditado externamente","Sí, si además se adjunta el temario de la capacitación al registro de asistencia"],ans:1,fb:"La cláusula 7.2 exige que la competencia sea 'demostrada'. Asistir a una capacitación no es lo mismo que demostrar capacidad de aplicar lo aprendido. La evidencia puede incluir evaluaciones, ejercicios prácticos, simulacros o desempeño en incidentes reales."},
+{q:"¿Por qué la toma de conciencia es crítica para la eficacia del BCMS durante un incidente real?",opts:["Porque el personal consciente genera menores costos de capacitación a largo plazo","Porque quien no entiende su rol no puede actuar correctamente cuando los procedimientos fallan y el tiempo es crítico","Porque la toma de conciencia es un requisito de certificación que los auditores verifican en detalle","Porque reduce la necesidad de tener planes documentados con alto nivel de detalle"],ans:1,fb:"Durante un incidente real los procedimientos no siempre cubren cada situación. El personal que entiende el propósito del BCMS y su rol puede adaptarse e improvisar con criterio. El que solo sigue instrucciones sin entender el porqué queda paralizado ante lo inesperado."},
+{q:"La cláusula 7.4 exige definir la comunicación del BCMS. ¿Cuál es el elemento más crítico a definir?",opts:["El formato de los correos electrónicos y mensajes durante un incidente activo","El número mínimo de canales de comunicación disponibles en la organización","Qué comunicar, cuándo, a quién, cómo y quién es responsable — en operación normal y durante una interrupción","La frecuencia mínima de reuniones del comité de crisis en situación de normalidad"],ans:2,fb:"La cláusula 7.4 exige definir los cinco elementos de la comunicación: qué, cuándo, a quién, cómo y quién. Esto aplica tanto en operación normal como durante una interrupción, donde la comunicación oportuna puede ser decisiva para la respuesta."},
+{q:"¿Qué distingue a la 'información documentada' según la cláusula 7.5?",opts:["Debe estar en formato digital; los documentos físicos no cumplen el requisito de la norma","Es cualquier información que la organización debe controlar y mantener, independientemente del formato o soporte","Solo los procedimientos obligatorios de la norma constituyen información documentada válida","Requiere firma electrónica certificada para ser considerada válida por la norma"],ans:1,fb:"La cláusula 7.5 define información documentada como cualquier información que la organización debe controlar y mantener. No importa el formato — digital, físico, video, audio. Lo que importa es que esté controlada: versión, aprobación, distribución y protección."},
+{q:"Una persona clave del equipo de respuesta renuncia. ¿Qué exige la cláusula 7.2 en este caso?",opts:["Nada específico: la gestión de personas es responsabilidad de RR.HH., no del BCMS","Solo actualizar el organigrama del BCMS con el nombre del nuevo responsable designado","Asegurar que la competencia requerida para ese rol se mantenga disponible — transfiriendo conocimiento, capacitando al sucesor o redefiniendo responsabilidades","Suspender temporalmente el BCMS hasta que la persona sea reemplazada formalmente"],ans:2,fb:"La cláusula 7.2 exige que la organización determine la competencia necesaria y se asegure de que esté disponible. La salida de personal clave es un riesgo de competencia que el BCMS debe gestionar proactivamente — no es solo un tema de RR.HH."}
+];
+let cur=0,score=0,answered=[];
+function render(){
+  const q=Qs[cur];
+  document.getElementById('prog').style.width=Math.round((cur/Qs.length)*100)+'%';
+  let h=`<div class="card"><div class="qnum">Pregunta ${cur+1} de ${Qs.length}</div><div class="qtext">${q.q}</div>`;
+  q.opts.forEach((o,i)=>{h+=`<div class="opt" id="op${i}" onclick="pick(${i})"><div class="dot" id="dot${i}"></div><span>${o}</span></div>`;});
+  h+=`<div class="fb" id="fb"></div></div>`;
+  document.getElementById('qbody').innerHTML=h;
+  document.getElementById('btnr').style.display='none';
+}
+function pick(i){
+  const q=Qs[cur];
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  const ok=i===q.ans;
+  document.getElementById('op'+i).classList.add(ok?'correct':'wrong');
+  document.getElementById('dot'+i).textContent=ok?'✓':'✗';
+  if(!ok){document.getElementById('op'+q.ans).classList.add('correct');document.getElementById('dot'+q.ans).textContent='✓';}
+  const fb=document.getElementById('fb');fb.textContent=q.fb;fb.className='fb show '+(ok?'ok':'ko');
+  if(ok)score++;answered.push({q:q.q,ok});cur++;
+  if(cur<Qs.length){
+    const b=document.createElement('button');b.className='btn-next show';b.textContent='Siguiente →';b.onclick=render;
+    document.querySelector('.card').appendChild(b);
+  } else {document.getElementById('btnr').style.display='block';}
+}
+function showResult(){
+  document.getElementById('qbody').innerHTML='';document.getElementById('btnr').style.display='none';
+  document.getElementById('reswrap').style.display='block';
+  const pct=Math.round((score/Qs.length)*100);
+  document.getElementById('gpct').textContent=pct+'%';drawGauge(pct);
+  let label,sub,color;
+  if(pct>=87){label='Excelente dominio';sub='Comprendes sólidamente los requisitos del Capítulo 7.';color='#3B6D11';}
+  else if(pct>=62){label='Buen nivel';sub='Algunos conceptos sobre competencia y conciencia vale la pena repasar.';color='#BA7517';}
+  else{label='Necesitas repasar';sub='Te recomendamos revisar las cláusulas 7.2 a 7.5 antes de continuar.';color='#A32D2D';}
+  const rl=document.getElementById('rlabel');rl.textContent=label;rl.style.color=color;
+  document.getElementById('rsub').textContent=sub;
+  document.getElementById('review').innerHTML=answered.map((a,i)=>
+    `<div class="ri"><div class="ri-q">${i+1}. ${a.q}</div><div class="${a.ok?'rok':'rko'}">${a.ok?'✓ Correcta':'✗ Incorrecta'}</div></div>`).join('');
+}
+function drawGauge(pct){
+  const c=document.getElementById('gauge'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,220,120);
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,2*Math.PI);ctx.strokeStyle='#E0E0E0';ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+  const color=pct>=87?'#3B6D11':pct>=62?'#BA7517':'#A32D2D';
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,Math.PI+(pct/100)*Math.PI);ctx.strokeStyle=color;ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+}
+function restart(){cur=0;score=0;answered=[];document.getElementById('reswrap').style.display='none';render();}
+document.getElementById('btnr').onclick=showResult;
+render();
+</script>
+</body>
+</html>
