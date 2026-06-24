@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación Capítulo 6 — ISO 22301:2019</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;color:#1A1A1A;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header{text-align:center;margin-bottom:1.5rem}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.header p{font-size:13px;color:#666}
+.logo{display:inline-block;background:#C00000;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.05em}
+.pb{height:5px;background:#E0E0E0;border-radius:3px;margin-bottom:1.5rem}
+.pf{height:5px;background:#185FA5;border-radius:3px;transition:width .3s}
+.card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.qnum{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:#1A1A1A}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;line-height:1.45;color:#1A1A1A;transition:border-color .15s,background .15s}
+.opt:hover{background:#F0F7FF;border-color:#185FA5}
+.opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#27500A}
+.opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#791F1F}
+.dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #CCC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.opt.correct .dot{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.opt.wrong .dot{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.fb{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.55;display:none}
+.fb.show{display:block}
+.fb.ok{background:#EAF3DE;color:#1E4D08;border:1px solid #7BBF5A}
+.fb.ko{background:#FCEBEB;color:#791F1F;border:1px solid #E08080}
+.btn-next{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:15px;font-weight:500;cursor:pointer;display:none}
+.btn-next.show{display:block}
+.btn-result{width:100%;padding:14px;margin-top:1.5rem;border-radius:8px;background:#C00000;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:none}
+.result{display:none;text-align:center;padding:.5rem 0}
+.gauge-wrap{position:relative;width:220px;height:120px;margin:0 auto 1rem}
+canvas{display:block}
+.gauge-pct{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:32px;font-weight:700;color:#1A1A1A}
+.result-label{font-size:18px;font-weight:600;margin-bottom:6px}
+.result-sub{font-size:14px;color:#555;margin-bottom:1.5rem;line-height:1.5}
+.ri{text-align:left;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.ri-q{font-weight:500;margin-bottom:4px;line-height:1.4;color:#1A1A1A}
+.rok{color:#27500A;font-weight:500}.rko{color:#791F1F;font-weight:500}
+.btn-retry{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#fff;color:#1A1A1A;border:1.5px solid #CCC;font-size:14px;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:11px;color:#AAA}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="logo">ISO 22301:2019</div>
+  <h1>Autoevaluación — Capítulo 6</h1>
+  <p>Planificación · Riesgos y objetivos · 8 preguntas</p>
+</div>
+<div class="pb"><div class="pf" id="prog" style="width:0%"></div></div>
+<div id="qbody"></div>
+<button class="btn-result" id="btnr" style="display:none">Ver mi resultado</button>
+<div class="result" id="reswrap">
+  <div class="gauge-wrap"><canvas id="gauge" width="220" height="120"></canvas><div class="gauge-pct" id="gpct"></div></div>
+  <div class="result-label" id="rlabel"></div>
+  <div class="result-sub" id="rsub"></div>
+  <div id="review"></div>
+  <button class="btn-retry" onclick="restart()">Intentar de nuevo</button>
+</div>
+<div class="footer">Curso ISO 22301:2019 · UEjecutivos — Universidad de Chile</div>
+</div>
+<script>
+const Qs=[
+{q:"¿Cuál es la diferencia entre un riesgo y una oportunidad en la cláusula 6.1?",opts:["No hay diferencia: ambos términos se usan de forma intercambiable en la norma","El riesgo es negativo por definición; la oportunidad es positiva y no requiere gestión formal","El riesgo es un efecto de la incertidumbre sobre los objetivos; la oportunidad es una circunstancia favorable que puede mejorar el sistema","Los riesgos afectan la operación diaria; las oportunidades afectan exclusivamente la estrategia corporativa"],ans:2,fb:"La cláusula 6.1 adopta la definición de ISO 31000: el riesgo es un efecto de la incertidumbre sobre los objetivos. Las oportunidades son condiciones favorables que, si se aprovechan, pueden mejorar la eficacia del BCMS. Ambos deben considerarse."},
+{q:"¿Con qué propósito exige la cláusula 6.1 determinar riesgos y oportunidades?",opts:["Para cumplir un requisito formal de documentación sin impacto directo en la gestión","Para asegurar que el BCMS logre sus resultados, prevenir efectos no deseados y lograr la mejora continua","Exclusivamente para preparar la documentación de la auditoría de certificación","Para determinar el presupuesto anual que se asignará al BCMS en el ejercicio siguiente"],ans:1,fb:"La cláusula 6.1 es explícita: la determinación de riesgos y oportunidades tiene tres propósitos concretos — asegurar que el BCMS logre sus resultados, prevenir efectos no deseados y lograr la mejora continua. No es un ejercicio formal."},
+{q:"¿En qué se diferencia el análisis de riesgos de la cláusula 6.1 del BIA de la cláusula 8.2?",opts:["Son el mismo ejercicio con distinto nombre según la etapa del sistema","La cláusula 6.1 analiza riesgos para el BCMS como sistema; el BIA analiza el impacto de interrupciones sobre las actividades críticas","La cláusula 6.1 es obligatoria solo para empresas con más de 200 empleados","El BIA reemplaza a la cláusula 6.1 cuando se desarrolla con suficiente nivel de detalle"],ans:1,fb:"Son análisis complementarios con objetos distintos. La cláusula 6.1 analiza qué puede impedir que el BCMS funcione correctamente como sistema. El BIA analiza el impacto que una interrupción tiene sobre las actividades críticas del negocio."},
+{q:"¿Qué características deben tener los objetivos de continuidad según la cláusula 6.2?",opts:["Deben ser aspiracionales y expresarse en términos cualitativos para mantener flexibilidad","Deben ser coherentes con la política, medibles, considerar requisitos aplicables y ser objeto de seguimiento","Basta con que estén documentados y aprobados formalmente por la alta dirección","Deben definirse exclusivamente en términos de RTO y RPO para cada actividad crítica"],ans:1,fb:"La cláusula 6.2 establece que los objetivos deben ser coherentes con la política, medibles cuando sea factible, considerar los requisitos aplicables, ser objeto de seguimiento y estar documentados. Los RTO y RPO son ejemplos, no los únicos objetivos válidos."},
+{q:"Una organización define como objetivo: 'mejorar la continuidad del negocio'. ¿Cumple la cláusula 6.2?",opts:["Sí, es válido si está aprobado por la alta dirección y documentado formalmente","Sí, siempre que esté alineado con la política de continuidad vigente de la organización","No: no es medible ni permite hacer seguimiento objetivo de su cumplimiento","Sí, porque la norma acepta objetivos cualitativos en las etapas iniciales de implementación"],ans:2,fb:"'Mejorar la continuidad' no es medible ni verificable. La cláusula 6.2 exige objetivos que permitan hacer seguimiento. Un objetivo válido sería: 'Reducir el RTO de la actividad X de 48 a 24 horas antes del 31 de diciembre'."},
+{q:"¿Qué debe incluir el plan para lograr los objetivos según la cláusula 6.2?",opts:["Solo el presupuesto asignado y el nombre del responsable general del BCMS","Qué se hará, qué recursos se requieren, quién es responsable, cuándo se completará y cómo se evaluarán los resultados","Una descripción general de las actividades planificadas sin plazos ni indicadores definidos","Únicamente los indicadores de medición, sin necesidad de detallar acciones específicas"],ans:1,fb:"La cláusula 6.2 es explícita: el plan debe especificar qué se hará, qué recursos se necesitan, quién es responsable, cuándo se completará y cómo se evaluarán los resultados. Es un plan de acción concreto, no una declaración de intenciones."},
+{q:"¿Qué exige la cláusula 6.3 cuando la organización planifica cambios en el BCMS?",opts:["Que todo cambio sea aprobado por el organismo certificador antes de implementarse","Que los cambios se realicen de forma planificada, considerando propósito, consecuencias, recursos e integridad del sistema","Que los cambios menores no requieran planificación formal si no afectan la política de continuidad","Que cualquier cambio significativo reinicie el proceso de certificación desde el inicio"],ans:1,fb:"La cláusula 6.3 exige que los cambios al BCMS sean planificados considerando: el propósito del cambio, las consecuencias potenciales, la disponibilidad de recursos y si el sistema mantiene su integridad. No interviene el organismo certificador en cambios internos."},
+{q:"Una organización detecta que un proveedor crítico tiene alta probabilidad de quiebra. ¿En qué cláusula del Capítulo 6 debe registrar este hallazgo?",opts:["En la cláusula 6.2, como un objetivo de continuidad pendiente de cumplir en el próximo ciclo","En la cláusula 6.3, porque implica un cambio planificado en la cadena de suministro del BCMS","En la cláusula 6.1, como un riesgo externo que puede afectar la capacidad del BCMS","No corresponde al Capítulo 6: es un hallazgo que pertenece exclusivamente al BIA de la cláusula 8.2"],ans:2,fb:"La posible quiebra de un proveedor crítico es un riesgo externo que puede afectar la capacidad del BCMS para lograr sus resultados. Corresponde a la cláusula 6.1. El BIA (8.2) analiza el impacto una vez que la interrupción ocurre — la 6.1 actúa antes, en la gestión preventiva."}
+];
+let cur=0,score=0,answered=[];
+function render(){
+  const q=Qs[cur];
+  document.getElementById('prog').style.width=Math.round((cur/Qs.length)*100)+'%';
+  let h=`<div class="card"><div class="qnum">Pregunta ${cur+1} de ${Qs.length}</div><div class="qtext">${q.q}</div>`;
+  q.opts.forEach((o,i)=>{h+=`<div class="opt" id="op${i}" onclick="pick(${i})"><div class="dot" id="dot${i}"></div><span>${o}</span></div>`;});
+  h+=`<div class="fb" id="fb"></div></div>`;
+  document.getElementById('qbody').innerHTML=h;
+  document.getElementById('btnr').style.display='none';
+}
+function pick(i){
+  const q=Qs[cur];
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  const ok=i===q.ans;
+  document.getElementById('op'+i).classList.add(ok?'correct':'wrong');
+  document.getElementById('dot'+i).textContent=ok?'✓':'✗';
+  if(!ok){document.getElementById('op'+q.ans).classList.add('correct');document.getElementById('dot'+q.ans).textContent='✓';}
+  const fb=document.getElementById('fb');fb.textContent=q.fb;fb.className='fb show '+(ok?'ok':'ko');
+  if(ok)score++;answered.push({q:q.q,ok});cur++;
+  if(cur<Qs.length){
+    const b=document.createElement('button');b.className='btn-next show';b.textContent='Siguiente →';b.onclick=render;
+    document.querySelector('.card').appendChild(b);
+  } else {document.getElementById('btnr').style.display='block';}
+}
+function showResult(){
+  document.getElementById('qbody').innerHTML='';document.getElementById('btnr').style.display='none';
+  document.getElementById('reswrap').style.display='block';
+  const pct=Math.round((score/Qs.length)*100);
+  document.getElementById('gpct').textContent=pct+'%';drawGauge(pct);
+  let label,sub,color;
+  if(pct>=87){label='Excelente dominio';sub='Comprendes sólidamente los requisitos del Capítulo 6.';color='#3B6D11';}
+  else if(pct>=62){label='Buen nivel';sub='Algunos conceptos sobre riesgos y objetivos vale la pena repasar.';color='#BA7517';}
+  else{label='Necesitas repasar';sub='Te recomendamos revisar las cláusulas 6.1 a 6.3 antes de continuar.';color='#A32D2D';}
+  const rl=document.getElementById('rlabel');rl.textContent=label;rl.style.color=color;
+  document.getElementById('rsub').textContent=sub;
+  document.getElementById('review').innerHTML=answered.map((a,i)=>
+    `<div class="ri"><div class="ri-q">${i+1}. ${a.q}</div><div class="${a.ok?'rok':'rko'}">${a.ok?'✓ Correcta':'✗ Incorrecta'}</div></div>`).join('');
+}
+function drawGauge(pct){
+  const c=document.getElementById('gauge'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,220,120);
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,2*Math.PI);ctx.strokeStyle='#E0E0E0';ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+  const color=pct>=87?'#3B6D11':pct>=62?'#BA7517':'#A32D2D';
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,Math.PI+(pct/100)*Math.PI);ctx.strokeStyle=color;ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+}
+function restart(){cur=0;score=0;answered=[];document.getElementById('reswrap').style.display='none';render();}
+document.getElementById('btnr').onclick=showResult;
+render();
+</script>
+</body>
+</html>
