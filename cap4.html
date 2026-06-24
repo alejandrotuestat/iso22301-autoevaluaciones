@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación Capítulo 4 — ISO 22301:2019</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;color:#1A1A1A;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header{text-align:center;margin-bottom:1.5rem}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.header p{font-size:13px;color:#666}
+.logo{display:inline-block;background:#C00000;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.05em}
+.pb{height:5px;background:#E0E0E0;border-radius:3px;margin-bottom:1.5rem}
+.pf{height:5px;background:#185FA5;border-radius:3px;transition:width .3s}
+.card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.qnum{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:#1A1A1A}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;line-height:1.45;color:#1A1A1A;transition:border-color .15s,background .15s}
+.opt:hover{background:#F0F7FF;border-color:#185FA5}
+.opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#27500A}
+.opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#791F1F}
+.dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #CCC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.opt.correct .dot{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.opt.wrong .dot{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.fb{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.55;display:none}
+.fb.show{display:block}
+.fb.ok{background:#EAF3DE;color:#1E4D08;border:1px solid #7BBF5A}
+.fb.ko{background:#FCEBEB;color:#791F1F;border:1px solid #E08080}
+.btn-next{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:15px;font-weight:500;cursor:pointer;display:none}
+.btn-next.show{display:block}
+.btn-result{width:100%;padding:14px;margin-top:1.5rem;border-radius:8px;background:#C00000;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:none}
+.btn-result.show{display:block}
+.result{display:none;text-align:center;padding:.5rem 0}
+.result.show{display:block}
+.gauge-wrap{position:relative;width:220px;height:120px;margin:0 auto 1rem}
+canvas{display:block}
+.gauge-pct{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:32px;font-weight:700;color:#1A1A1A}
+.result-label{font-size:18px;font-weight:600;margin-bottom:6px}
+.result-sub{font-size:14px;color:#555;margin-bottom:1.5rem;line-height:1.5}
+.ri{text-align:left;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.ri-q{font-weight:500;margin-bottom:4px;line-height:1.4;color:#1A1A1A}
+.rok{color:#27500A;font-weight:500}.rko{color:#791F1F;font-weight:500}
+.btn-retry{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#fff;color:#1A1A1A;border:1.5px solid #CCC;font-size:14px;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:11px;color:#AAA}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="logo">ISO 22301:2019</div>
+  <h1>Autoevaluación — Capítulo 4</h1>
+  <p>Contexto de la organización · 8 preguntas</p>
+</div>
+<div class="pb"><div class="pf" id="prog" style="width:0%"></div></div>
+<div id="qbody"></div>
+<button class="btn-result" id="btnr">Ver mi resultado</button>
+<div class="result" id="reswrap">
+  <div class="gauge-wrap"><canvas id="gauge" width="220" height="120"></canvas><div class="gauge-pct" id="gpct"></div></div>
+  <div class="result-label" id="rlabel"></div>
+  <div class="result-sub" id="rsub"></div>
+  <div id="review"></div>
+  <button class="btn-retry" onclick="restart()">Intentar de nuevo</button>
+</div>
+<div class="footer">Curso ISO 22301:2019 · UEjecutivos — Universidad de Chile</div>
+</div>
+<script>
+const Qs=[
+{q:"¿Cuál es el propósito principal de la cláusula 4.1 de ISO 22301?",opts:["Establecer la política de continuidad del negocio","Determinar los recursos necesarios para implementar el BCMS","Identificar los factores internos y externos que afectan la capacidad del BCMS","Definir los objetivos cuantitativos de recuperación"],ans:2,fb:"La cláusula 4.1 exige determinar los factores internos y externos relevantes que puedan afectar la capacidad del BCMS para lograr sus resultados previstos. Es el punto de partida del sistema."},
+{q:"¿Por qué el análisis de contexto es el punto de partida obligatorio del BCMS?",opts:["Porque el contexto determina qué riesgos son relevantes, qué partes interesadas importan y qué alcance tiene sentido — sin él, el BCMS se construye sin fundamento real","Porque la norma lo ubica primero y el orden de los capítulos es obligatorio","Porque permite obtener la certificación más rápidamente","Porque es el único requisito que no necesita revisión periódica"],ans:0,fb:"El contexto no es un trámite inicial — es el fundamento que determina todo lo que viene después. Un BCMS construido sin análisis de contexto puede ser formalmente correcto pero completamente irrelevante para la organización real."},
+{q:"Según la cláusula 4.2, ¿qué distingue a una parte interesada 'relevante' para el BCMS?",opts:["Que tenga alguna relación comercial con la organización","Que sea una entidad reguladora o gubernamental","Que sea cliente directo de la organización","Que sus necesidades y expectativas puedan afectar o ser afectadas por el BCMS"],ans:3,fb:"La cláusula 4.2 define como partes interesadas relevantes a aquellas cuyas necesidades y expectativas tienen impacto sobre el BCMS o que pueden verse afectadas por una interrupción de la organización."},
+{q:"¿Qué debe incluir obligatoriamente la declaración de alcance del BCMS según la cláusula 4.3?",opts:["Los objetivos cuantitativos de recuperación (RTO y RPO)","Los límites y la aplicabilidad del sistema, considerando contexto, partes interesadas y límites de la organización","La lista completa de amenazas identificadas en el BIA","El presupuesto asignado para la implementación"],ans:1,fb:"La cláusula 4.3 establece que el alcance debe definir los límites y la aplicabilidad del BCMS, considerando el contexto (4.1), los requisitos de partes interesadas (4.2) y los límites organizacionales."},
+{q:"Una organización excluye una sede de su BCMS. ¿Qué condición exige la cláusula 4.3?",opts:["La exclusión no requiere justificación si la sede tiene menos de 50 empleados","No se permiten exclusiones bajo ninguna circunstancia","La exclusión debe justificarse y no puede afectar la capacidad de cumplir las obligaciones de continuidad","La exclusión es válida automáticamente si la sede no tiene contacto con clientes"],ans:2,fb:"La norma permite exclusiones del alcance, pero deben estar justificadas y no pueden comprometer la capacidad de mantener la continuidad de los productos y servicios priorizados."},
+{q:"¿Qué establece la cláusula 4.4 como obligación central respecto al BCMS?",opts:["Obtener la certificación ISO 22301 en un plazo máximo de 24 meses","Designar un representante exclusivo de la alta dirección para el BCMS","Someter el BCMS a auditoría externa anual","Establecer, implementar, mantener y mejorar continuamente el BCMS"],ans:3,fb:"La cláusula 4.4 establece la obligación de establecer, implementar, mantener y mejorar continuamente el BCMS conforme a los requisitos de la norma. No exige certificación ni auditoría externa."},
+{q:"¿Cuál es la diferencia entre requisitos legales y requisitos de partes interesadas en la cláusula 4.2?",opts:["Los requisitos legales son de cumplimiento obligatorio; los de partes interesadas la organización puede decidir adoptarlos o no","Ambos tienen el mismo nivel de obligatoriedad en el BCMS","Los requisitos legales son opcionales si la organización está certificada","Los requisitos de partes interesadas siempre superan en jerarquía a los legales"],ans:0,fb:"La cláusula 4.2.2 distingue los requisitos legales y reglamentarios, de cumplimiento obligatorio, de otras necesidades de partes interesadas que la organización puede decidir adoptar o no según su contexto."},
+{q:"Una empresa implementa su BCMS pero no documenta el análisis de contexto. ¿Cuál es la consecuencia normativa?",opts:["Solo incumple si es auditada externamente","No existe consecuencia si el BCMS funciona bien en la práctica","Incumple únicamente si tiene contratos con organismos públicos","Incumple la cláusula 4.1: el análisis de contexto es información documentada exigida por la norma"],ans:3,fb:"ISO 22301 exige que el análisis de contexto sea información documentada. Su ausencia constituye una no conformidad directa con la cláusula 4.1, independientemente de si el BCMS funciona en la práctica."}
+];
+let cur=0,score=0,answered=[];
+function render(){
+  const q=Qs[cur];
+  document.getElementById('prog').style.width=Math.round((cur/Qs.length)*100)+'%';
+  let h=`<div class="card"><div class="qnum">Pregunta ${cur+1} de ${Qs.length}</div><div class="qtext">${q.q}</div>`;
+  q.opts.forEach((o,i)=>{h+=`<div class="opt" id="op${i}" onclick="pick(${i})"><div class="dot" id="dot${i}"></div><span>${o}</span></div>`;});
+  h+=`<div class="fb" id="fb"></div></div>`;
+  document.getElementById('qbody').innerHTML=h;
+  document.getElementById('btnr').style.display='none';
+}
+function pick(i){
+  const q=Qs[cur];
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  const ok=i===q.ans;
+  document.getElementById('op'+i).classList.add(ok?'correct':'wrong');
+  document.getElementById('dot'+i).textContent=ok?'✓':'✗';
+  if(!ok){document.getElementById('op'+q.ans).classList.add('correct');document.getElementById('dot'+q.ans).textContent='✓';}
+  const fb=document.getElementById('fb');
+  fb.textContent=q.fb;fb.className='fb show '+(ok?'ok':'ko');
+  if(ok)score++;
+  answered.push({q:q.q,ok});cur++;
+  if(cur<Qs.length){
+    const b=document.createElement('button');b.className='btn-next show';b.textContent='Siguiente →';b.onclick=render;
+    document.querySelector('.card').appendChild(b);
+  } else {document.getElementById('btnr').style.display='block';}
+}
+function showResult(){
+  document.getElementById('qbody').innerHTML='';document.getElementById('btnr').style.display='none';
+  document.getElementById('reswrap').style.display='block';
+  const pct=Math.round((score/Qs.length)*100);
+  document.getElementById('gpct').textContent=pct+'%';drawGauge(pct);
+  let label,sub,color;
+  if(pct>=87){label='Excelente dominio';sub='Comprendes sólidamente los requisitos del Capítulo 4.';color='#3B6D11';}
+  else if(pct>=62){label='Buen nivel';sub='Hay algunos conceptos que vale la pena repasar.';color='#BA7517';}
+  else{label='Necesitas repasar';sub='Te recomendamos revisar las cláusulas 4.1 a 4.4 antes de continuar.';color='#A32D2D';}
+  const rl=document.getElementById('rlabel');rl.textContent=label;rl.style.color=color;
+  document.getElementById('rsub').textContent=sub;
+  document.getElementById('review').innerHTML=answered.map((a,i)=>
+    `<div class="ri"><div class="ri-q">${i+1}. ${a.q}</div><div class="${a.ok?'rok':'rko'}">${a.ok?'✓ Correcta':'✗ Incorrecta'}</div></div>`).join('');
+}
+function drawGauge(pct){
+  const c=document.getElementById('gauge'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,220,120);
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,2*Math.PI);ctx.strokeStyle='#E0E0E0';ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+  const color=pct>=87?'#3B6D11':pct>=62?'#BA7517':'#A32D2D';
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,Math.PI+(pct/100)*Math.PI);ctx.strokeStyle=color;ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+}
+function restart(){cur=0;score=0;answered=[];document.getElementById('reswrap').style.display='none';render();}
+document.getElementById('btnr').onclick=showResult;
+render();
+</script>
+</body>
+</html>

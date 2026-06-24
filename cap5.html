@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación Capítulo 5 — ISO 22301:2019</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;color:#1A1A1A;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header{text-align:center;margin-bottom:1.5rem}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.header p{font-size:13px;color:#666}
+.logo{display:inline-block;background:#C00000;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.05em}
+.pb{height:5px;background:#E0E0E0;border-radius:3px;margin-bottom:1.5rem}
+.pf{height:5px;background:#185FA5;border-radius:3px;transition:width .3s}
+.card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.qnum{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:#1A1A1A}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;line-height:1.45;color:#1A1A1A;transition:border-color .15s,background .15s}
+.opt:hover{background:#F0F7FF;border-color:#185FA5}
+.opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#27500A}
+.opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#791F1F}
+.dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #CCC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.opt.correct .dot{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.opt.wrong .dot{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.fb{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.55;display:none}
+.fb.show{display:block}
+.fb.ok{background:#EAF3DE;color:#1E4D08;border:1px solid #7BBF5A}
+.fb.ko{background:#FCEBEB;color:#791F1F;border:1px solid #E08080}
+.btn-next{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:15px;font-weight:500;cursor:pointer;display:none}
+.btn-next.show{display:block}
+.btn-result{width:100%;padding:14px;margin-top:1.5rem;border-radius:8px;background:#C00000;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:none}
+.result{display:none;text-align:center;padding:.5rem 0}
+.gauge-wrap{position:relative;width:220px;height:120px;margin:0 auto 1rem}
+canvas{display:block}
+.gauge-pct{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:32px;font-weight:700;color:#1A1A1A}
+.result-label{font-size:18px;font-weight:600;margin-bottom:6px}
+.result-sub{font-size:14px;color:#555;margin-bottom:1.5rem;line-height:1.5}
+.ri{text-align:left;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.ri-q{font-weight:500;margin-bottom:4px;line-height:1.4;color:#1A1A1A}
+.rok{color:#27500A;font-weight:500}.rko{color:#791F1F;font-weight:500}
+.btn-retry{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#fff;color:#1A1A1A;border:1.5px solid #CCC;font-size:14px;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:11px;color:#AAA}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="logo">ISO 22301:2019</div>
+  <h1>Autoevaluación — Capítulo 5</h1>
+  <p>Liderazgo · 8 preguntas</p>
+</div>
+<div class="pb"><div class="pf" id="prog" style="width:0%"></div></div>
+<div id="qbody"></div>
+<button class="btn-result" id="btnr" style="display:none">Ver mi resultado</button>
+<div class="result" id="reswrap">
+  <div class="gauge-wrap"><canvas id="gauge" width="220" height="120"></canvas><div class="gauge-pct" id="gpct"></div></div>
+  <div class="result-label" id="rlabel"></div>
+  <div class="result-sub" id="rsub"></div>
+  <div id="review"></div>
+  <button class="btn-retry" onclick="restart()">Intentar de nuevo</button>
+</div>
+<div class="footer">Curso ISO 22301:2019 · UEjecutivos — Universidad de Chile</div>
+</div>
+<script>
+const Qs=[
+{q:"La cláusula 5.1 exige que la alta dirección 'demuestre liderazgo'. ¿Qué diferencia hay entre demostrar liderazgo y simplemente aprobar el BCMS?",opts:["No hay diferencia: aprobar el BCMS es suficiente evidencia de liderazgo","Demostrar liderazgo implica involucramiento activo y continuo — asignar recursos, participar en revisiones, rendir cuentas — no solo firmar documentos","La diferencia es solo semántica; ambos términos significan lo mismo en la norma","Demostrar liderazgo significa contratar a un consultor externo para gestionar el BCMS"],ans:1,fb:"La cláusula 5.1 exige evidencia de involucramiento activo: asignar recursos, integrar el BCMS en los procesos del negocio, comunicar su importancia y participar en las revisiones. Aprobar un documento no es suficiente."},
+{q:"Según la cláusula 5.1, ¿cuál de estas acciones es responsabilidad exclusiva de la alta dirección y no puede delegarse?",opts:["Redactar los procedimientos operativos de contingencia","Ejecutar los simulacros y ejercicios del BCMS","Rendir cuentas por la eficacia del BCMS y asegurar que sus objetivos sean compatibles con la dirección estratégica","Actualizar el registro de riesgos después de cada incidente"],ans:2,fb:"La cláusula 5.1 establece que la alta dirección es responsable de la eficacia del BCMS y de asegurar su alineación con la dirección estratégica. Estas responsabilidades no pueden delegarse aunque la gestión operativa sí puede asignarse a otros roles."},
+{q:"Una organización tiene una política de continuidad firmada por el gerente general, publicada en la intranet y comunicada al personal. ¿Cumple plenamente la cláusula 5.2?",opts:["Sí, cumple completamente todos los requisitos de la cláusula 5.2","No necesariamente: la política debe además incluir compromiso con los objetivos, con el cumplimiento de requisitos aplicables y con la mejora continua del BCMS","No: la política debe ser firmada por el directorio completo, no solo por el gerente general","Sí, siempre que esté disponible también en formato impreso"],ans:1,fb:"La cláusula 5.2 exige que la política incluya explícitamente: compromiso con los objetivos de continuidad, marco para establecerlos, cumplimiento de requisitos aplicables y mejora continua. Una política bien comunicada pero incompleta en contenido no cumple plenamente."},
+{q:"¿Qué significa que la política de continuidad debe ser 'apropiada para el propósito de la organización' según la cláusula 5.2?",opts:["Que debe estar redactada en el idioma oficial del país donde opera","Que debe tener al menos dos páginas de extensión","Que su contenido y alcance deben reflejar la naturaleza, tamaño y complejidad de la organización y sus riesgos reales","Que debe ser aprobada por un organismo certificador antes de publicarse"],ans:2,fb:"Una política 'apropiada' no es genérica ni copiada de otra organización — debe reflejar el contexto real, los riesgos identificados y los productos y servicios priorizados de la organización específica."},
+{q:"La cláusula 5.3 exige asignar roles, responsabilidades y autoridades. ¿Cuál es el riesgo principal de no definir claramente la autoridad en el BCMS?",opts:["Que el BCMS no pueda certificarse bajo ISO 22301","Que durante un incidente real nadie sepa quién tiene autoridad para tomar decisiones críticas, paralizando la respuesta","Que los auditores internos no puedan completar su trabajo","Que la política de continuidad pierda validez legal"],ans:1,fb:"La falta de autoridad definida es uno de los hallazgos más críticos en auditorías de BCMS. Durante un incidente real, la ambigüedad de roles provoca parálisis en la toma de decisiones precisamente cuando el tiempo es el recurso más escaso."},
+{q:"Una empresa asigna la gestión del BCMS exclusivamente al área de TI porque la mayoría de sus riesgos son tecnológicos. ¿Qué problema normativo genera esto?",opts:["Ninguno: es una decisión organizacional válida según la cláusula 5.3","El BCMS cubre continuidad operacional global, no solo TI. Asignarlo solo a TI puede dejar sin cobertura los riesgos de personas, infraestructura física y cadena de suministro","Solo es un problema si la empresa tiene más de 500 empleados","Es un problema únicamente si TI no tiene representación en el comité directivo"],ans:1,fb:"La cláusula 5.3 exige que los roles cubran todo el alcance del BCMS. Asignar la gestión exclusivamente a TI es un error frecuente que deja sin liderazgo los componentes no tecnológicos de la continuidad operacional."},
+{q:"¿Qué evidencia objetiva demuestra que la alta dirección lidera activamente el BCMS según la cláusula 5.1?",opts:["La existencia de un manual del BCMS aprobado y numerado","Actas de revisión presididas por la alta dirección, decisiones de asignación de recursos documentadas y participación en ejercicios o simulacros","El número de certificaciones ISO que posee la organización","La antigüedad del responsable del BCMS en la organización"],ans:1,fb:"La norma exige evidencia objetiva de liderazgo activo: actas de revisiones presididas por la alta dirección, decisiones documentadas sobre recursos, y participación en ejercicios. Un manual bien redactado sin esta evidencia no demuestra liderazgo real."},
+{q:"La alta dirección delega completamente la gestión del BCMS en un coordinador de continuidad. ¿Qué parte de la cláusula 5.1 incumple?",opts:["No incumple ninguna: delegar es una práctica de gestión válida y aceptada por la norma","Incumple el requisito de rendir cuentas por la eficacia del BCMS, que es una responsabilidad indelegable de la alta dirección","Solo incumple si el coordinador no tiene título universitario en gestión de riesgos","Incumple únicamente si la delegación no está documentada por escrito"],ans:1,fb:"La cláusula 5.1 establece que la alta dirección debe rendir cuentas por la eficacia del BCMS. Puede delegar la gestión operativa, pero no puede transferir la responsabilidad de resultados. La delegación total sin supervisión es una no conformidad."}
+];
+let cur=0,score=0,answered=[];
+function render(){
+  const q=Qs[cur];
+  document.getElementById('prog').style.width=Math.round((cur/Qs.length)*100)+'%';
+  let h=`<div class="card"><div class="qnum">Pregunta ${cur+1} de ${Qs.length}</div><div class="qtext">${q.q}</div>`;
+  q.opts.forEach((o,i)=>{h+=`<div class="opt" id="op${i}" onclick="pick(${i})"><div class="dot" id="dot${i}"></div><span>${o}</span></div>`;});
+  h+=`<div class="fb" id="fb"></div></div>`;
+  document.getElementById('qbody').innerHTML=h;
+  document.getElementById('btnr').style.display='none';
+}
+function pick(i){
+  const q=Qs[cur];
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  const ok=i===q.ans;
+  document.getElementById('op'+i).classList.add(ok?'correct':'wrong');
+  document.getElementById('dot'+i).textContent=ok?'✓':'✗';
+  if(!ok){document.getElementById('op'+q.ans).classList.add('correct');document.getElementById('dot'+q.ans).textContent='✓';}
+  const fb=document.getElementById('fb');fb.textContent=q.fb;fb.className='fb show '+(ok?'ok':'ko');
+  if(ok)score++;answered.push({q:q.q,ok});cur++;
+  if(cur<Qs.length){
+    const b=document.createElement('button');b.className='btn-next show';b.textContent='Siguiente →';b.onclick=render;
+    document.querySelector('.card').appendChild(b);
+  } else {document.getElementById('btnr').style.display='block';}
+}
+function showResult(){
+  document.getElementById('qbody').innerHTML='';document.getElementById('btnr').style.display='none';
+  document.getElementById('reswrap').style.display='block';
+  const pct=Math.round((score/Qs.length)*100);
+  document.getElementById('gpct').textContent=pct+'%';drawGauge(pct);
+  let label,sub,color;
+  if(pct>=87){label='Excelente dominio';sub='Comprendes sólidamente los requisitos del Capítulo 5.';color='#3B6D11';}
+  else if(pct>=62){label='Buen nivel';sub='Hay algunos conceptos sobre liderazgo que vale la pena repasar.';color='#BA7517';}
+  else{label='Necesitas repasar';sub='Te recomendamos revisar las cláusulas 5.1 a 5.3 antes de continuar.';color='#A32D2D';}
+  const rl=document.getElementById('rlabel');rl.textContent=label;rl.style.color=color;
+  document.getElementById('rsub').textContent=sub;
+  document.getElementById('review').innerHTML=answered.map((a,i)=>
+    `<div class="ri"><div class="ri-q">${i+1}. ${a.q}</div><div class="${a.ok?'rok':'rko'}">${a.ok?'✓ Correcta':'✗ Incorrecta'}</div></div>`).join('');
+}
+function drawGauge(pct){
+  const c=document.getElementById('gauge'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,220,120);
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,2*Math.PI);ctx.strokeStyle='#E0E0E0';ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+  const color=pct>=87?'#3B6D11':pct>=62?'#BA7517':'#A32D2D';
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,Math.PI+(pct/100)*Math.PI);ctx.strokeStyle=color;ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+}
+function restart(){cur=0;score=0;answered=[];document.getElementById('reswrap').style.display='none';render();}
+document.getElementById('btnr').onclick=showResult;
+render();
+</script>
+</body>
+</html>
