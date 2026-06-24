@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación Capítulo 9 — ISO 22301:2019</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;color:#1A1A1A;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header{text-align:center;margin-bottom:1.5rem}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.header p{font-size:13px;color:#666}
+.logo{display:inline-block;background:#C00000;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.05em}
+.pb{height:5px;background:#E0E0E0;border-radius:3px;margin-bottom:1.5rem}
+.pf{height:5px;background:#185FA5;border-radius:3px;transition:width .3s}
+.card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.qnum{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.qsec{font-size:10px;color:#185FA5;font-weight:600;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:#1A1A1A}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;line-height:1.45;color:#1A1A1A;transition:border-color .15s,background .15s}
+.opt:hover{background:#F0F7FF;border-color:#185FA5}
+.opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#27500A}
+.opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#791F1F}
+.dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #CCC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.opt.correct .dot{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.opt.wrong .dot{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.fb{font-size:13px;padding:10px 12px;border-radius:8px;margin-top:10px;line-height:1.55;display:none}
+.fb.show{display:block}
+.fb.ok{background:#EAF3DE;color:#1E4D08;border:1px solid #7BBF5A}
+.fb.ko{background:#FCEBEB;color:#791F1F;border:1px solid #E08080}
+.btn-next{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:15px;font-weight:500;cursor:pointer;display:none}
+.btn-next.show{display:block}
+.btn-result{width:100%;padding:14px;margin-top:1.5rem;border-radius:8px;background:#C00000;color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:none}
+.result{display:none;text-align:center;padding:.5rem 0}
+.gauge-wrap{position:relative;width:220px;height:120px;margin:0 auto 1rem}
+canvas{display:block}
+.gauge-pct{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:32px;font-weight:700;color:#1A1A1A}
+.result-label{font-size:18px;font-weight:600;margin-bottom:6px}
+.result-sub{font-size:14px;color:#555;margin-bottom:1.5rem;line-height:1.5}
+.ri{text-align:left;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.ri-s{font-size:10px;color:#185FA5;font-weight:600;margin-bottom:3px}
+.ri-q{font-weight:500;margin-bottom:4px;line-height:1.4;color:#1A1A1A}
+.rok{color:#27500A;font-weight:500}.rko{color:#791F1F;font-weight:500}
+.btn-retry{width:100%;padding:12px;margin-top:1rem;border-radius:8px;background:#fff;color:#1A1A1A;border:1.5px solid #CCC;font-size:14px;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:11px;color:#AAA}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="logo">ISO 22301:2019</div>
+  <h1>Autoevaluación — Capítulo 9</h1>
+  <p>Evaluación del desempeño · 8 preguntas</p>
+</div>
+<div class="pb"><div class="pf" id="prog" style="width:0%"></div></div>
+<div id="qbody"></div>
+<button class="btn-result" id="btnr" style="display:none">Ver mi resultado</button>
+<div class="result" id="reswrap">
+  <div class="gauge-wrap"><canvas id="gauge" width="220" height="120"></canvas><div class="gauge-pct" id="gpct"></div></div>
+  <div class="result-label" id="rlabel"></div>
+  <div class="result-sub" id="rsub"></div>
+  <div id="review"></div>
+  <button class="btn-retry" onclick="restart()">Intentar de nuevo</button>
+</div>
+<div class="footer">Curso ISO 22301:2019 · UEjecutivos — Universidad de Chile</div>
+</div>
+<script>
+const Qs=[
+{s:"9.1 — Seguimiento y medición",
+q:"¿Qué debe determinar la organización según la cláusula 9.1 respecto al seguimiento del BCMS?",
+opts:[
+  "Solo el número de incidentes ocurridos y su costo económico directo en el período evaluado",
+  "Qué necesita seguimiento, qué métodos usar, cuándo analizar y quién es responsable de informar los resultados",
+  "Únicamente los indicadores financieros asociados al presupuesto y costo de los incidentes",
+  "Solo los resultados de los ejercicios y simulacros realizados durante el período de evaluación"
+],ans:1,
+fb:"La cláusula 9.1 exige determinar qué se mide, con qué métodos, con qué frecuencia, cuándo se analizan los resultados y quién los reporta. No se limita a contar incidentes — cubre la eficacia del BCMS como sistema completo."},
+
+{s:"9.1 — Seguimiento y medición",
+q:"Una organización mide el número de capacitaciones realizadas al año. ¿Es indicador suficiente de eficacia del BCMS?",
+opts:[
+  "Sí: la capacitación es el principal indicador de eficacia reconocido por los sistemas de gestión",
+  "Sí, si además se registra el número de participantes y el temario de cada sesión impartida",
+  "No: mide actividad, no resultados. Un indicador de eficacia mediría si la competencia mejoró o si los planes funcionan",
+  "Sí, siempre que las capacitaciones sean impartidas por instructores con certificación externa reconocida"
+],ans:2,
+fb:"La cláusula 9.1 exige medir la eficacia — si el sistema logra sus resultados previstos. Contar capacitaciones mide actividad, no resultado. Indicadores válidos incluyen: % de actividades con RTO cumplido en ejercicios o tiempo de respuesta en incidentes reales."},
+
+{s:"9.2 — Auditoría interna",
+q:"¿Cuál es el propósito principal de la auditoría interna del BCMS según la cláusula 9.2?",
+opts:[
+  "Preparar y organizar la documentación necesaria para la auditoría de certificación externa anual",
+  "Determinar si el BCMS cumple los requisitos de la norma y se implementa y mantiene eficazmente",
+  "Identificar a los responsables de no conformidades para aplicar las medidas disciplinarias correspondientes",
+  "Verificar que el presupuesto asignado al BCMS se ha utilizado de acuerdo a lo planificado"
+],ans:1,
+fb:"La cláusula 9.2 establece que la auditoría interna determina si el BCMS cumple los requisitos propios y de la norma, y si se implementa eficazmente. No es preparación para la auditoría externa ni un proceso disciplinario."},
+
+{s:"9.2 — Auditoría interna",
+q:"¿Por qué los auditores internos no pueden auditar su propio trabajo según la cláusula 9.2?",
+opts:[
+  "Porque la norma exige que todos los auditores tengan una certificación externa independiente vigente",
+  "Porque la objetividad e imparcialidad son requisitos explícitos — auditar el propio trabajo elimina la independencia necesaria",
+  "Porque el costo de la auditoría interna se incrementa cuando los auditores conocen el área que se audita",
+  "Porque esa función está reservada exclusivamente para los auditores del organismo certificador externo"
+],ans:1,
+fb:"La cláusula 9.2 exige que los auditores sean objetivos e imparciales. Auditar el propio trabajo genera un conflicto de interés que invalida la independencia necesaria para identificar no conformidades reales."},
+
+{s:"9.2 — Auditoría interna",
+q:"¿Qué debe hacer la organización con los resultados de la auditoría interna según la cláusula 9.2?",
+opts:[
+  "Archivarlos como información documentada sin necesidad de tomar acciones adicionales derivadas",
+  "Reportarlos directamente al organismo certificador para su revisión y validación formal correspondiente",
+  "Informarlos a la alta dirección y utilizarlos como entrada para la revisión por la dirección",
+  "Publicarlos en la intranet corporativa para conocimiento general de todo el personal de la organización"
+],ans:2,
+fb:"Los resultados de la auditoría se comunican a la alta dirección relevante y se conservan como información documentada. Son una entrada clave para la revisión por la dirección (9.3), donde se toman decisiones sobre mejoras al BCMS."},
+
+{s:"9.3 — Revisión por la dirección",
+q:"¿Con qué frecuencia debe realizarse la revisión por la dirección según la cláusula 9.3?",
+opts:[
+  "Anualmente en una fecha fija establecida previamente en la política de continuidad del negocio",
+  "Cada vez que ocurra un incidente significativo que haya activado el plan de continuidad",
+  "A intervalos planificados — la norma no fija una frecuencia mínima específica",
+  "Trimestralmente para garantizar la alineación permanente con los objetivos estratégicos organizacionales"
+],ans:2,
+fb:"La cláusula 9.3 exige revisiones 'a intervalos planificados', sin fijar una frecuencia mínima. La organización determina la frecuencia según su contexto y la dinámica de sus riesgos. Lo importante es que sea planificada y sistemática, no reactiva."},
+
+{s:"9.3 — Revisión por la dirección",
+q:"¿Qué información debe considerar la revisión por la dirección según la cláusula 9.3?",
+opts:[
+  "Solo los resultados de los ejercicios y simulacros realizados durante el período revisado",
+  "Únicamente las no conformidades identificadas en la auditoría interna más reciente del período",
+  "El estado de acciones anteriores, cambios en el contexto, resultados de auditorías, desempeño del BCMS y oportunidades de mejora",
+  "Solo los indicadores financieros y el costo total de los incidentes ocurridos en el período evaluado"
+],ans:2,
+fb:"La cláusula 9.3 define entradas específicas: estado de acciones previas, cambios en contexto y partes interesadas, resultados de seguimiento y auditorías, desempeño del BCMS y oportunidades de mejora. Es una revisión sistémica, no un reporte parcial."},
+
+{s:"9.3 — Revisión por la dirección",
+q:"¿Qué distingue a una revisión por la dirección de una reunión ordinaria de seguimiento del BCMS?",
+opts:[
+  "La revisión por la dirección debe tener una duración mínima mayor que una reunión ordinaria de seguimiento",
+  "La revisión por la dirección la preside la alta dirección, evalúa el sistema integralmente y produce decisiones sobre recursos y mejoras documentadas",
+  "La reunión ordinaria no requiere acta formal mientras que la revisión por la dirección sí requiere acta firmada por todos",
+  "No existe diferencia real entre ambas: cumplen el mismo propósito normativo según la cláusula 9.3"
+],ans:1,
+fb:"La revisión por la dirección (9.3) es una evaluación integral del BCMS presidida por la alta dirección, que produce decisiones documentadas sobre mejoras, recursos y cambios al sistema. Una reunión de seguimiento puede ser operativa y parcial; la revisión tiene alcance sistémico y autoridad decisional."}
+];
+let cur=0,score=0,answered=[];
+function render(){
+  const q=Qs[cur];
+  document.getElementById('prog').style.width=Math.round((cur/Qs.length)*100)+'%';
+  let h=`<div class="card"><div class="qnum">Pregunta ${cur+1} de ${Qs.length}</div><div class="qsec">${q.s}</div><div class="qtext">${q.q}</div>`;
+  q.opts.forEach((o,i)=>{h+=`<div class="opt" id="op${i}" onclick="pick(${i})"><div class="dot" id="dot${i}"></div><span>${o}</span></div>`;});
+  h+=`<div class="fb" id="fb"></div></div>`;
+  document.getElementById('qbody').innerHTML=h;
+  document.getElementById('btnr').style.display='none';
+}
+function pick(i){
+  const q=Qs[cur];
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  const ok=i===q.ans;
+  document.getElementById('op'+i).classList.add(ok?'correct':'wrong');
+  document.getElementById('dot'+i).textContent=ok?'✓':'✗';
+  if(!ok){document.getElementById('op'+q.ans).classList.add('correct');document.getElementById('dot'+q.ans).textContent='✓';}
+  const fb=document.getElementById('fb');fb.textContent=q.fb;fb.className='fb show '+(ok?'ok':'ko');
+  if(ok)score++;answered.push({q:q.q,s:q.s,ok});cur++;
+  if(cur<Qs.length){
+    const b=document.createElement('button');b.className='btn-next show';b.textContent='Siguiente →';b.onclick=render;
+    document.querySelector('.card').appendChild(b);
+  } else {document.getElementById('btnr').style.display='block';}
+}
+function showResult(){
+  document.getElementById('qbody').innerHTML='';document.getElementById('btnr').style.display='none';
+  document.getElementById('reswrap').style.display='block';
+  const pct=Math.round((score/Qs.length)*100);
+  document.getElementById('gpct').textContent=pct+'%';drawGauge(pct);
+  let label,sub,color;
+  if(pct>=87){label='Excelente dominio';sub='Comprendes sólidamente los requisitos del Capítulo 9.';color='#3B6D11';}
+  else if(pct>=62){label='Buen nivel';sub='Algunos conceptos sobre evaluación del desempeño vale la pena repasar.';color='#BA7517';}
+  else{label='Necesitas repasar';sub='Te recomendamos revisar las cláusulas 9.1 a 9.3 antes de continuar.';color='#A32D2D';}
+  const rl=document.getElementById('rlabel');rl.textContent=label;rl.style.color=color;
+  document.getElementById('rsub').textContent=sub;
+  document.getElementById('review').innerHTML=answered.map((a,i)=>
+    `<div class="ri"><div class="ri-s">${a.s}</div><div class="ri-q">${i+1}. ${a.q}</div><div class="${a.ok?'rok':'rko'}">${a.ok?'✓ Correcta':'✗ Incorrecta'}</div></div>`).join('');
+}
+function drawGauge(pct){
+  const c=document.getElementById('gauge'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,220,120);
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,2*Math.PI);ctx.strokeStyle='#E0E0E0';ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+  const color=pct>=87?'#3B6D11':pct>=58?'#BA7517':'#A32D2D';
+  ctx.beginPath();ctx.arc(110,110,90,Math.PI,Math.PI+(pct/100)*Math.PI);ctx.strokeStyle=color;ctx.lineWidth=16;ctx.lineCap='round';ctx.stroke();
+}
+function restart(){cur=0;score=0;answered=[];document.getElementById('reswrap').style.display='none';render();}
+document.getElementById('btnr').onclick=showResult;
+render();
+</script>
+</body>
+</html>
